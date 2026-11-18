@@ -2,7 +2,7 @@
 
 A Google Sheets **data generator** creates realistic daily output for a fictional mining company: trends, weekly patterns and random incidents, all from one formula. This dashboard reads the generated data live, finds unusual days and turns them into a PDF report.
 
-[🚀 Live app](https://weyland-yutani-mining.streamlit.app) · [📊 Data generator](https://docs.google.com/spreadsheets/d/1FkrTgr1sRXpvhPpsQqCinUWLUbuzJiUEwYtTBpZno3Y) · [🎥 Video](https://youtu.be/O-3xZS9Gy4U)
+[🚀 Live app](https://weyland-yutani-mining.streamlit.app) · [📊 Data generator](https://docs.google.com/spreadsheets/d/1FkrTgr1sRXpvhPpsQqCinUWLUbuzJiUEwYtTBpZno3Y)
 
 ![Dashboard](images/dashboard.png)
 

@@ -1,11 +1,14 @@
 import plotly.graph_objects as go
 import streamlit as st
-from plotly.colors import qualitative
 
 from analysis import TESTS, find_anomalies, load_data, run_tests, summary_table, trendline
 from report import build_report
 
-st.set_page_config(page_title="Mining Ops Dashboard", layout="wide")
+# industrial palette shared by the theme and the Plotly charts
+PALETTE = ["#F2A93B", "#4FB3BF", "#9AA5B1", "#C8693E", "#7DB87A"]
+ANOMALY = "#E5533D"
+
+st.set_page_config(page_title="Mining Ops Dashboard", page_icon=":material/precision_manufacturing:", layout="wide")
 
 
 # the sheet changes whenever someone edits it, so the data is re-read at most once a minute
@@ -15,10 +18,12 @@ def get_data():
 
 
 with st.sidebar:
+    st.markdown("## :material/precision_manufacturing: Mining Ops")
+    st.caption("Control panel")
     if st.button("Refresh data", icon=":material/refresh:", width="stretch"):
         st.cache_data.clear()
 
-    st.subheader("Anomaly tests")
+    st.subheader(":material/troubleshoot: Anomaly tests")
     params = {
         "weekly_adjust": st.toggle("Remove weekly pattern before testing", value=True),
         "iqr_k": st.slider("IQR rule: k", 1.0, 3.0, 1.5, 0.1),
@@ -28,7 +33,7 @@ with st.sidebar:
         "grubbs_alpha": st.select_slider("Grubbs: significance level", [0.01, 0.025, 0.05, 0.1], 0.05),
     }
 
-    st.subheader("Chart")
+    st.subheader(":material/monitoring: Chart")
     chart_type = st.radio("Type", ["Line", "Bar", "Stacked"], horizontal=True)
     degree = st.select_slider("Trendline degree", [1, 2, 3, 4], 1)
     highlight = st.selectbox("Highlight anomalies from", ["Any test"] + TESTS)
@@ -38,12 +43,15 @@ mines = [col for col in df.columns if col != "Total"]
 flags = {name: run_tests(df[name], params) for name in df.columns}
 stats_table = summary_table(df, flags)
 anomalies = find_anomalies(df, flags)
-color_of = dict(zip(df.columns, qualitative.Plotly))
+# the total keeps the accent colour, each mine gets its own
+color_of = {"Total": PALETTE[0]} | dict(zip(mines, PALETTE[1:]))
 
 st.title("Weyland-Yutani Mining Operations")
-st.caption(f"{df.index.min():%Y-%m-%d} to {df.index.max():%Y-%m-%d}  ·  {len(df)} days  ·  {len(mines)} mines")
+st.caption(f"{df.index.min():%d %b %Y} to {df.index.max():%d %b %Y}  ·  {len(df)} days  ·  {len(mines)} mines")
 
-tab_stats, tab_charts, tab_anomalies = st.tabs(["Statistics", "Charts", "Anomalies"])
+tab_stats, tab_charts, tab_anomalies = st.tabs([
+    ":material/table_chart: Statistics", ":material/show_chart: Charts", ":material/warning: Anomalies"
+])
 
 with tab_stats:
     st.dataframe(
@@ -75,7 +83,7 @@ with tab_charts:
         fig.add_scatter(x=series.index, y=trendline(series, degree), mode="lines", name=f"{name} trend",
                         line=dict(color=color_of[name], dash="dash"))
         fig.add_scatter(x=series.index[flagged], y=series[flagged], mode="markers", name=f"{name} anomalies",
-                        marker=dict(color="red", size=10, symbol="x"))
+                        marker=dict(color=ANOMALY, size=10, symbol="x"))
 
     fig.update_layout(barmode="stack" if chart_type == "Stacked" else "group", height=520,
                       margin=dict(t=20, b=20), legend=dict(orientation="h"), hovermode="x unified")
